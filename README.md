@@ -4,6 +4,10 @@
 
 Live site: [verwertung777.github.io/burgerblast](https://verwertung777.github.io/burgerblast)
 
+## Preview
+
+![BurgerBlast website screenshot](screenshot.png)
+
 ## About
 
 Single-page marketing site for the fictional BurgerBlast fast-food brand. Built as a single self-contained `index.html` file with no dependencies or build step.
