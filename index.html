@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BurgerBlast — Taste the Fire</title>
+<style>
+/* ── RESET & VARIABLES ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+:root {
+  --red:    #E8161B;
+  --yellow: #FFC72C;
+  --dark:   #1A1A1A;
+  --charcoal: #2C2C2C;
+  --orange: #FF6B1A;
+  --white:  #FFFFFF;
+  --grey:   #888;
+  --lgrey:  #555;
+  --blue:   #4A90E2;
+}
+body {
+  background: var(--dark);
+  color: var(--white);
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+a { color: inherit; text-decoration: none; }
+img { display: block; width: 100%; object-fit: cover; }
+button { cursor: pointer; border: none; font-family: inherit; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--dark); }
+::-webkit-scrollbar-thumb { background: var(--red); border-radius: 3px; }
+
+/* ── NAV ── */
+#navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  height: 70px;
+  background: rgba(26,26,26,0.97);
+  backdrop-filter: blur(10px);
+  border-bottom: 3px solid var(--yellow);
+  display: flex; align-items: center;
+  padding: 0 2rem;
+  gap: 2rem;
+}
+.nav-logo {
+  font-weight: 900; font-size: 1.5rem; letter-spacing: -1px;
+  white-space: nowrap; user-select: none;
+}
+.nav-logo span.b1 { color: var(--yellow); }
+.nav-logo span.b2 { color: var(--red); }
+.nav-links {
+  display: flex; gap: 1.5rem; list-style: none;
+  margin-left: auto;
+}
+.nav-links a {
+  font-size: 0.9rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--white);
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--yellow); }
+.btn-order {
+  background: var(--red); color: var(--white);
+  padding: 0.5rem 1.3rem; border-radius: 25px;
+  font-weight: 700; font-size: 0.9rem;
+  transition: background 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+.btn-order:hover { background: var(--orange); transform: translateY(-2px); }
+.cart-btn {
+  background: var(--charcoal); color: var(--white);
+  padding: 0.5rem 1rem; border-radius: 25px;
+  font-weight: 700; font-size: 0.9rem; border: 1px solid #444;
+  display: flex; align-items: center; gap: 0.4rem;
+  transition: border-color 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+.cart-btn:hover { border-color: var(--yellow); transform: translateY(-2px); }
+#cart-count {
+  background: var(--red); color: var(--white);
+  border-radius: 50%; width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 900;
+}
+.hamburger {
+  display: none; flex-direction: column; gap: 5px;
+  background: none; padding: 4px;
+}
+.hamburger span {
+  display: block; width: 24px; height: 2px; background: var(--white);
+  transition: 0.3s;
+}
+.mobile-menu {
+  display: none; position: fixed; top: 70px; left: 0; right: 0; z-index: 999;
+  background: rgba(26,26,26,0.98); backdrop-filter: blur(10px);
+  padding: 1rem 2rem; flex-direction: column; gap: 1rem;
+  border-bottom: 2px solid var(--yellow);
+}
+.mobile-menu a {
+  font-weight: 600; font-size: 1rem; text-transform: uppercase;
+  color: var(--white); padding: 0.5rem 0;
+  border-bottom: 1px solid #333;
+}
+.mobile-menu.open { display: flex; }
+
+/* ── HERO ── */
+#home {
+  height: 100vh; min-height: 600px;
+  background: linear-gradient(135deg, #1A1A1A 0%, #2C1810 40%, #1A1A1A 100%);
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  padding-top: 70px;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 60% at 60% 50%, rgba(232,22,27,0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 50% at 20% 80%, rgba(255,199,44,0.12) 0%, transparent 60%);
+  pointer-events: none;
+}
+.hero-img {
+  position: absolute; right: -5%; top: 50%; transform: translateY(-50%);
+  width: min(50%, 600px); height: 80%;
+  object-fit: cover; object-position: center;
+  opacity: 0.35; border-radius: 50% 0 0 50%;
+}
+.hero-content {
+  position: relative; z-index: 1;
+  max-width: 1200px; width: 100%; padding: 2rem;
+}
+.hero-badge {
+  display: inline-block;
+  background: var(--yellow); color: var(--dark);
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 3px; padding: 0.35rem 1rem; border-radius: 20px;
+  margin-bottom: 1.5rem;
+}
+.hero-h1 { line-height: 1.05; }
+.hero-h1 .line1 {
+  display: block;
+  font-size: clamp(3rem, 8vw, 7rem);
+  font-weight: 900; color: var(--white);
+  letter-spacing: -3px;
+}
+.hero-h1 .line2 {
+  display: block;
+  font-size: clamp(3rem, 8vw, 7rem);
+  font-weight: 900; color: var(--yellow);
+  letter-spacing: -3px;
+  text-shadow: 0 0 60px rgba(255,199,44,0.5);
+}
+.hero-h1 .line3 {
+  display: block;
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  font-weight: 700; color: var(--red);
+  letter-spacing: 1px; margin-top: 0.3rem;
+}
+.hero-sub {
+  max-width: 520px;
+  margin: 1.5rem 0 2rem;
+  color: #aaa; font-size: 1rem; line-height: 1.7;
+}
+.hero-ctas { display: flex; gap: 1rem; flex-wrap: wrap; }
+.btn-primary {
+  background: var(--red); color: var(--white);
+  padding: 0.85rem 2rem; border-radius: 30px;
+  font-weight: 700; font-size: 1rem;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  display: inline-block;
+}
+.btn-primary:hover {
+  background: var(--orange); transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(232,22,27,0.4);
+}
+.btn-outline {
+  background: transparent; color: var(--yellow);
+  padding: 0.85rem 2rem; border-radius: 30px;
+  font-weight: 700; font-size: 1rem;
+  border: 2px solid var(--yellow);
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+  display: inline-block;
+}
+.btn-outline:hover {
+  background: var(--yellow); color: var(--dark);
+  transform: translateY(-3px);
+}
+.hero-stats {
+  display: flex; gap: 2.5rem; margin-top: 3rem; flex-wrap: wrap;
+}
+.stat-item { text-align: center; }
+.stat-num {
+  font-size: 1.8rem; font-weight: 900; color: var(--yellow);
+  display: block;
+}
+.stat-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 2px; }
+.scroll-arrow {
+  position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+  font-size: 1.5rem; color: var(--yellow);
+  animation: bounce 1.4s infinite;
+}
+@keyframes bounce {
+  0%,100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-10px); }
+}
+
+/* ── SECTION GENERIC ── */
+section { padding: 5rem 2rem; }
+.section-label {
+  font-size: 0.75rem; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--yellow); margin-bottom: 0.5rem;
+}
+.section-title {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 900; color: var(--white); letter-spacing: -1px;
+  margin-bottom: 0.5rem;
+}
+.section-title span { color: var(--red); }
+.section-sub { color: var(--grey); max-width: 600px; margin-bottom: 3rem; }
+.container { max-width: 1200px; margin: 0 auto; }
+
+/* ── MENU TABS ── */
+#menu { background: var(--dark); }
+.menu-tabs {
+  display: flex; gap: 0.75rem; margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+.tab-btn {
+  padding: 0.6rem 1.4rem; border-radius: 30px;
+  font-size: 0.9rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: transparent; color: #888;
+  border: 1px solid #444;
+  transition: all 0.2s;
+}
+.tab-btn:hover { background: rgba(255,199,44,0.15); color: var(--yellow); border-color: var(--yellow); }
+.tab-btn.active { background: var(--yellow); color: var(--dark); border-color: var(--yellow); }
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── FOOD CARD ── */
+.food-card {
+  background: var(--charcoal); border-radius: 20px;
+  border: 1px solid #333; overflow: hidden;
+  transition: transform 0.25s, box-shadow 0.25s;
+  position: relative;
+}
+.food-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+.card-img {
+  height: 180px; position: relative; overflow: hidden;
+}
+.card-img img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.4s;
+}
+.food-card:hover .card-img img { transform: scale(1.06); }
+.card-img-gradient {
+  height: 180px; position: relative;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 4rem;
+}
+.card-badge {
+  position: absolute; top: 12px; right: 12px;
+  padding: 0.25rem 0.65rem; border-radius: 12px;
+  font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; z-index: 1;
+}
+.badge-hot, .badge-new { background: var(--red); color: var(--white); }
+.badge-spicy { background: var(--orange); color: var(--white); }
+.badge-blue { background: var(--blue); color: var(--white); }
+.card-body { padding: 1.1rem 1.2rem 1.3rem; }
+.card-name {
+  font-size: 1.05rem; font-weight: 800; color: var(--white);
+  margin-bottom: 0.35rem;
+}
+.card-desc {
+  font-size: 0.83rem; color: var(--grey); line-height: 1.5;
+  margin-bottom: 0.4rem;
+}
+.card-cal { font-size: 0.73rem; color: #555; margin-bottom: 0.8rem; }
+.card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-price {
+  font-size: 1.3rem; font-weight: 900; color: var(--yellow);
+}
+.add-btn {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--red); color: var(--white);
+  font-size: 1.3rem; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s, transform 0.15s;
+  flex-shrink: 0;
+}
+.add-btn:hover { background: var(--orange); transform: scale(1.1); }
+.add-btn.added { background: #16a34a; }
+
+/* ── MEALS ── */
+#meals { background: #141414; }
+.meals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  margin-bottom: 3rem;
+}
+.meals-subtitle {
+  font-size: 0.75rem; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--yellow); margin: 2.5rem 0 1rem;
+}
+
+/* Signature meal card */
+.meal-card {
+  border-radius: 20px; border: 1px solid var(--red);
+  background: linear-gradient(135deg, #3D0A0A, #2C1810);
+  padding: 1.5rem; position: relative; overflow: hidden;
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+.meal-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+.meal-card.value-card {
+  background: linear-gradient(135deg, #3D2E00, #2C2200);
+  border-color: var(--yellow);
+}
+.meal-card.kids-card {
+  background: linear-gradient(135deg, #0A1A3D, #0A0A2C);
+  border-color: var(--blue);
+}
+.meal-badge {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.25rem 0.8rem; border-radius: 12px;
+  font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 1rem;
+}
+.meal-badge.sig { background: var(--red); color: var(--white); }
+.meal-badge.val { background: var(--yellow); color: var(--dark); }
+.meal-badge.kids { background: var(--blue); color: var(--white); }
+.meal-name { font-size: 1.15rem; font-weight: 800; margin-bottom: 0.5rem; }
+.meal-includes {
+  font-size: 0.83rem; color: #aaa; margin-bottom: 1.2rem; line-height: 1.5;
+}
+.meal-toy-tag {
+  display: inline-block;
+  background: rgba(74,144,226,0.15);
+  border: 1px solid rgba(74,144,226,0.4);
+  color: var(--blue); border-radius: 20px;
+  font-size: 0.72rem; font-weight: 700;
+  padding: 0.3rem 0.8rem; margin-bottom: 1rem;
+}
+.meal-footer { display: flex; align-items: flex-end; justify-content: space-between; }
+.meal-price-sig { font-size: 1.8rem; font-weight: 900; color: var(--red); }
+.meal-price-val { font-size: 1.8rem; font-weight: 900; color: var(--yellow); }
+.meal-price-kids { font-size: 1.8rem; font-weight: 900; color: var(--blue); }
+.meal-savings { font-size: 0.8rem; color: #555; text-decoration: line-through; }
+.save-tag {
+  font-size: 0.72rem; font-weight: 700; color: #4AE87A;
+  background: rgba(74,232,122,0.1); border-radius: 10px;
+  padding: 0.2rem 0.6rem;
+}
+.meal-order-btn {
+  background: var(--white); color: var(--dark);
+  padding: 0.55rem 1.2rem; border-radius: 20px;
+  font-weight: 700; font-size: 0.85rem;
+  transition: all 0.2s;
+}
+.meal-order-btn:hover { background: var(--yellow); }
+.meal-order-btn.added { background: #16a34a; color: var(--white); }
+
+/* ── DEALS ── */
+#deals {
+  background: var(--red); padding: 4rem 2rem; text-align: center;
+}
+.deals-title {
+  font-size: clamp(2rem, 5vw, 4rem); font-weight: 900; color: var(--white);
+  margin-bottom: 0.5rem;
+}
+.deals-title span { color: var(--yellow); }
+.deals-sub { color: rgba(255,255,255,0.8); margin-bottom: 2rem; font-size: 1rem; }
+.deals-chips {
+  display: flex; flex-wrap: wrap; gap: 0.75rem;
+  justify-content: center; margin-bottom: 2rem;
+}
+.deal-chip {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: var(--white); border-radius: 40px;
+  font-size: 0.85rem; font-weight: 600;
+  padding: 0.5rem 1.2rem;
+  backdrop-filter: blur(5px);
+}
+.btn-deals {
+  background: var(--white); color: var(--red);
+  padding: 0.85rem 2.5rem; border-radius: 30px;
+  font-weight: 700; font-size: 1rem;
+  transition: transform 0.15s, box-shadow 0.2s;
+  display: inline-block;
+}
+.btn-deals:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+
+/* ── LOCATIONS ── */
+#locations { background: var(--charcoal); }
+.locations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+.loc-card {
+  background: var(--dark); border-radius: 16px;
+  border: 1px solid #333; padding: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.loc-card:hover { transform: translateY(-4px); box-shadow: 0 12px 35px rgba(0,0,0,0.4); }
+.loc-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+.loc-name { font-size: 1rem; font-weight: 800; margin-bottom: 0.3rem; }
+.loc-addr { font-size: 0.83rem; color: var(--grey); margin-bottom: 0.3rem; }
+.loc-hours { font-size: 0.8rem; color: var(--lgrey); margin-bottom: 0.75rem; }
+.loc-status {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: #0D4A1A; color: #4AE87A;
+  border-radius: 20px; font-size: 0.72rem; font-weight: 700;
+  padding: 0.25rem 0.75rem;
+}
+.loc-status.closed { background: #3D0A0A; color: #E87A7A; }
+.loc-drive { font-size: 0.72rem; color: var(--yellow); margin-top: 0.5rem; font-weight: 600; }
+
+/* ── ORDER CART SIDEBAR ── */
+#cart-sidebar {
+  position: fixed; top: 70px; right: 0; bottom: 0; z-index: 900;
+  width: 360px; background: #111;
+  border-left: 2px solid var(--yellow);
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+#cart-sidebar.open { transform: translateX(0); }
+.cart-header {
+  padding: 1.2rem 1.5rem; border-bottom: 1px solid #222;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.cart-title { font-weight: 900; font-size: 1.1rem; }
+.cart-close {
+  background: #222; color: var(--white); border: 1px solid #333;
+  width: 30px; height: 30px; border-radius: 50%;
+  font-size: 1rem; display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.cart-close:hover { background: var(--red); }
+.cart-items { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; }
+.cart-empty {
+  text-align: center; color: var(--grey);
+  padding: 3rem 0; font-size: 0.9rem;
+}
+.cart-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.75rem 0; border-bottom: 1px solid #222;
+}
+.ci-emoji { font-size: 1.8rem; width: 42px; text-align: center; flex-shrink: 0; }
+.ci-info { flex: 1; }
+.ci-name { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.15rem; }
+.ci-price { font-size: 0.85rem; color: var(--yellow); font-weight: 700; }
+.ci-qty {
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.qty-btn {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: #222; color: var(--white);
+  font-size: 0.9rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.qty-btn:hover { background: var(--red); }
+.qty-val { font-size: 0.85rem; font-weight: 700; min-width: 20px; text-align: center; }
+.cart-footer {
+  padding: 1.2rem 1.5rem;
+  border-top: 1px solid #222;
+}
+.cart-total {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1rem;
+}
+.cart-total-label { font-size: 0.9rem; color: var(--grey); }
+.cart-total-val { font-size: 1.4rem; font-weight: 900; color: var(--yellow); }
+.btn-checkout {
+  display: block; width: 100%;
+  background: var(--red); color: var(--white);
+  padding: 0.9rem; border-radius: 12px;
+  font-size: 1rem; font-weight: 700; text-align: center;
+  transition: background 0.2s, transform 0.15s;
+}
+.btn-checkout:hover { background: var(--orange); transform: translateY(-2px); }
+
+/* ── CONTACT / ORDER FORM ── */
+#contact { background: var(--dark); }
+.contact-wrap {
+  display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem;
+  align-items: start;
+}
+.contact-info { }
+.contact-info p { color: var(--grey); margin-bottom: 2rem; line-height: 1.7; }
+.info-items { display: flex; flex-direction: column; gap: 1.2rem; }
+.info-item { display: flex; align-items: flex-start; gap: 1rem; }
+.info-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: var(--charcoal); display: flex; align-items: center;
+  justify-content: center; font-size: 1.2rem; flex-shrink: 0;
+  border: 1px solid #333;
+}
+.info-text strong { display: block; font-size: 0.85rem; margin-bottom: 0.15rem; }
+.info-text span { color: var(--grey); font-size: 0.83rem; }
+
+/* FORM */
+.order-form {
+  background: var(--charcoal); border-radius: 20px;
+  border: 1px solid #333; padding: 2rem;
+}
+.form-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.3rem; }
+.form-sub { color: var(--grey); font-size: 0.83rem; margin-bottom: 1.5rem; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-group { margin-bottom: 1rem; }
+.form-group.full { grid-column: 1 / -1; }
+.form-label {
+  display: block; font-size: 0.78rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--grey); margin-bottom: 0.4rem;
+}
+.form-input, .form-select, .form-textarea {
+  width: 100%; padding: 0.7rem 1rem; border-radius: 10px;
+  background: #1E1E1E; border: 1px solid #444; color: var(--white);
+  font-family: inherit; font-size: 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none; border-color: var(--yellow);
+  box-shadow: 0 0 0 3px rgba(255,199,44,0.15);
+}
+.form-input::placeholder, .form-textarea::placeholder { color: #555; }
+.form-select option { background: var(--dark); }
+.form-textarea { resize: vertical; min-height: 90px; }
+.radio-group { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.radio-label {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.55rem 1rem; border-radius: 10px;
+  border: 1px solid #444; cursor: pointer;
+  font-size: 0.85rem; font-weight: 600;
+  transition: all 0.2s; flex: 1; justify-content: center;
+}
+.radio-label:hover { border-color: var(--yellow); color: var(--yellow); }
+.radio-label input[type=radio] { accent-color: var(--yellow); }
+.radio-label.selected { border-color: var(--yellow); color: var(--yellow); background: rgba(255,199,44,0.08); }
+.form-cc-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.75rem; }
+.order-summary-box {
+  background: #1A1A1A; border: 1px solid #333; border-radius: 12px;
+  padding: 0.9rem 1rem; margin-bottom: 1rem;
+  font-size: 0.83rem; color: var(--grey);
+}
+.order-summary-box strong { color: var(--yellow); }
+.submit-btn {
+  width: 100%; background: var(--red); color: var(--white);
+  padding: 0.95rem; border-radius: 12px;
+  font-size: 1rem; font-weight: 700;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  margin-top: 0.5rem;
+}
+.submit-btn:hover {
+  background: var(--orange); transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(232,22,27,0.35);
+}
+.submit-btn:disabled { background: #444; transform: none; box-shadow: none; cursor: not-allowed; }
+.form-success {
+  display: none; text-align: center; padding: 2rem;
+}
+.form-success .success-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+.form-success h3 { font-size: 1.3rem; font-weight: 800; color: #4AE87A; margin-bottom: 0.5rem; }
+.form-success p { color: var(--grey); font-size: 0.9rem; }
+
+/* ── FOOTER ── */
+footer {
+  background: #111; border-top: 3px solid var(--yellow);
+  padding: 4rem 2rem 2rem;
+}
+.footer-grid {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 3rem; max-width: 1200px; margin: 0 auto;
+  padding-bottom: 3rem; border-bottom: 1px solid #222;
+}
+.footer-brand p {
+  color: var(--grey); font-size: 0.85rem; line-height: 1.7;
+  margin: 1rem 0 1.5rem;
+}
+.social-row { display: flex; gap: 0.75rem; }
+.social-btn {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: transparent; color: var(--white);
+  border: 2px solid #333; font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.social-btn:hover { border-color: var(--yellow); transform: scale(1.1); }
+.footer-col h4 {
+  font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--yellow); margin-bottom: 1rem;
+}
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+.footer-col ul a {
+  font-size: 0.85rem; color: var(--grey);
+  transition: color 0.2s;
+}
+.footer-col ul a:hover { color: var(--white); }
+.footer-bottom {
+  max-width: 1200px; margin: 1.5rem auto 0;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 1rem;
+}
+.footer-copy { font-size: 0.8rem; color: var(--lgrey); }
+.footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.footer-links a { font-size: 0.78rem; color: var(--lgrey); transition: color 0.2s; }
+.footer-links a:hover { color: var(--yellow); }
+
+/* ── FOCUS STATES (accessibility) ── */
+:focus-visible {
+  outline: 2px solid var(--yellow); outline-offset: 3px;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .footer-grid { grid-template-columns: 2fr 1fr 1fr; }
+  .contact-wrap { grid-template-columns: 1fr; gap: 2.5rem; }
+}
+@media (max-width: 768px) {
+  .nav-links, .btn-order { display: none; }
+  .hamburger { display: flex; margin-left: auto; }
+  .cart-btn { margin-left: auto; }
+  #cart-sidebar { width: 100%; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  .form-cc-row { grid-template-columns: 1fr 1fr; }
+  .meals-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .hero-stats { gap: 1.5rem; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+  .contact-wrap { gap: 2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ──────────── NAVBAR ──────────── -->
+<nav id="navbar" role="navigation" aria-label="Main navigation">
+  <div class="nav-logo" aria-label="BurgerBlast home">
+    🍔 <span class="b1">Burger</span><span class="b2">Blast</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#menu">Menu</a></li>
+    <li><a href="#meals">Meal Deals</a></li>
+    <li><a href="#deals">Offers</a></li>
+    <li><a href="#locations">Locations</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <button class="cart-btn" onclick="toggleCart()" aria-label="Open order cart">
+    🛒 Cart <span id="cart-count">0</span>
+  </button>
+  <a href="#contact" class="btn-order">Order Now</a>
+  <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<nav class="mobile-menu" id="mobileMenu">
+  <a href="#menu" onclick="closeMobileMenu()">Menu</a>
+  <a href="#meals" onclick="closeMobileMenu()">Meal Deals</a>
+  <a href="#deals" onclick="closeMobileMenu()">Offers</a>
+  <a href="#locations" onclick="closeMobileMenu()">Locations</a>
+  <a href="#contact" onclick="closeMobileMenu()">Order Now</a>
+</nav>
+
+<!-- ──────────── HERO ──────────── -->
+<section id="home">
+  <div class="hero-bg"></div>
+  <img class="hero-img"
+    src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80"
+    alt="BurgerBlast signature burger" loading="eager">
+  <div class="hero-content">
+    <div class="hero-badge">🔥 Now Serving — Taste the Fire</div>
+    <h1 class="hero-h1">
+      <span class="line1">BOLDLY</span>
+      <span class="line2">DELICIOUS</span>
+      <span class="line3">Flame-Grilled Since 1987</span>
+    </h1>
+    <p class="hero-sub">
+      From juicy flame-grilled burgers to golden crispy fries — every bite at
+      BurgerBlast is crafted with passion, fire, and flavour you'll crave.
+    </p>
+    <div class="hero-ctas">
+      <a href="#menu" class="btn-primary">Explore Menu</a>
+      <a href="#meals" class="btn-outline">View Meal Deals</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <span class="stat-num">500+</span>
+        <span class="stat-label">Locations</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">38</span>
+        <span class="stat-label">Countries</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">2M+</span>
+        <span class="stat-label">Happy Customers</span>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-arrow" aria-hidden="true">↓</div>
+</section>
+
+<!-- ──────────── MENU ──────────── -->
+<section id="menu">
+  <div class="container">
+    <p class="section-label">Our Menu</p>
+    <h2 class="section-title">What are you <span>craving?</span></h2>
+    <p class="section-sub">Fresh, flame-grilled, and made to order — explore our full menu below.</p>
+
+    <div class="menu-tabs" role="tablist">
+      <button class="tab-btn active" onclick="switchTab('burgers',this)" role="tab" aria-selected="true">🍔 Burgers</button>
+      <button class="tab-btn" onclick="switchTab('chicken',this)" role="tab">🍗 Chicken</button>
+      <button class="tab-btn" onclick="switchTab('sides',this)" role="tab">🍟 Sides &amp; Snacks</button>
+      <button class="tab-btn" onclick="switchTab('drinks',this)" role="tab">🥤 Drinks</button>
+      <button class="tab-btn" onclick="switchTab('desserts',this)" role="tab">🍦 Desserts</button>
+    </div>
+
+    <!-- BURGERS -->
+    <div id="tab-burgers" class="tab-panel active">
+      <div class="menu-grid" id="grid-burgers"></div>
+    </div>
+    <!-- CHICKEN -->
+    <div id="tab-chicken" class="tab-panel">
+      <div class="menu-grid" id="grid-chicken"></div>
+    </div>
+    <!-- SIDES -->
+    <div id="tab-sides" class="tab-panel">
+      <div class="menu-grid" id="grid-sides"></div>
+    </div>
+    <!-- DRINKS -->
+    <div id="tab-drinks" class="tab-panel">
+      <div class="menu-grid" id="grid-drinks"></div>
+    </div>
+    <!-- DESSERTS -->
+    <div id="tab-desserts" class="tab-panel">
+      <div class="menu-grid" id="grid-desserts"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────── MEALS ──────────── -->
+<section id="meals">
+  <div class="container">
+    <p class="section-label">Meal Deals</p>
+    <h2 class="section-title">More food, <span>more savings</span></h2>
+    <p class="section-sub">Bundle up and save big with our expertly crafted meal deals.</p>
+
+    <p class="meals-subtitle">⭐ Signature Set Meals</p>
+    <div class="meals-grid" id="grid-signature"></div>
+
+    <p class="meals-subtitle">💛 Budget Value Meals</p>
+    <div class="meals-grid" id="grid-value"></div>
+
+    <p class="meals-subtitle">🎉 Kids Happy Meals</p>
+    <div class="meals-grid" id="grid-kids"></div>
+  </div>
+</section>
+
+<!-- ──────────── DEALS ──────────── -->
+<section id="deals">
+  <div class="container">
+    <h2 class="deals-title">TODAY'S <span>HOT DEALS</span> 🔥</h2>
+    <p class="deals-sub">Limited time offers — grab them before they're gone!</p>
+    <div class="deals-chips">
+      <div class="deal-chip">🍦 FREE Sundae with any Signature Meal</div>
+      <div class="deal-chip">📱 20% Off via App — First Order</div>
+      <div class="deal-chip">☕ Free Hot Coffee Mon–Fri before 10am</div>
+      <div class="deal-chip">🍟 Buy 2 Get 1 Free Fries — Weekends</div>
+      <div class="deal-chip">👨‍👩‍👧‍👦 Family Bundle from $19.99</div>
+    </div>
+    <a href="#contact" class="btn-deals">View All Offers</a>
+  </div>
+</section>
+
+<!-- ──────────── LOCATIONS ──────────── -->
+<section id="locations">
+  <div class="container">
+    <p class="section-label">Find Us</p>
+    <h2 class="section-title">Nearest <span>BurgerBlast</span></h2>
+    <p class="section-sub">500+ locations across 38 countries — there's always one near you.</p>
+    <div class="locations-grid">
+      <div class="loc-card">
+        <div class="loc-icon">📍</div>
+        <div class="loc-name">City Central</div>
+        <div class="loc-addr">45 Main Street, City Centre</div>
+        <div class="loc-hours">Mon–Sun: 7:00am – 12:00am</div>
+        <div class="loc-status">● OPEN NOW</div>
+      </div>
+      <div class="loc-card">
+        <div class="loc-icon">📍</div>
+        <div class="loc-name">West Mall</div>
+        <div class="loc-addr">West Shopping Mall, Level 2</div>
+        <div class="loc-hours">Mon–Sun: 9:00am – 10:00pm</div>
+        <div class="loc-status">● OPEN NOW</div>
+        <div class="loc-drive">🚗 Drive-Thru Available</div>
+      </div>
+      <div class="loc-card">
+        <div class="loc-icon">📍</div>
+        <div class="loc-name">Airport Terminal 2</div>
+        <div class="loc-addr">International Airport, T2 Departures</div>
+        <div class="loc-hours">Daily: 5:00am – 11:00pm</div>
+        <div class="loc-status">● OPEN NOW</div>
+      </div>
+      <div class="loc-card">
+        <div class="loc-icon">📍</div>
+        <div class="loc-name">Riverside Drive-Thru</div>
+        <div class="loc-addr">Riverside Retail Park, East Side</div>
+        <div class="loc-hours">24 Hours — 7 Days a Week</div>
+        <div class="loc-status">● OPEN NOW</div>
+        <div class="loc-drive">🚗 Drive-Thru Available 24/7</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────── CONTACT / ORDER FORM ──────────── -->
+<section id="contact">
+  <div class="container">
+    <div class="contact-wrap">
+      <div class="contact-info">
+        <p class="section-label">Order &amp; Contact</p>
+        <h2 class="section-title">Place your <span>order</span></h2>
+        <p>Fill in the form to place your order or send us a message. Our team will confirm your order within minutes.</p>
+        <div class="info-items">
+          <div class="info-item">
+            <div class="info-icon">📞</div>
+            <div class="info-text">
+              <strong>Customer Service</strong>
+              <span>1-800-BURGER-BLAST</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">✉️</div>
+            <div class="info-text">
+              <strong>Email Us</strong>
+              <span>hello@burgerblast.com</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">⏰</div>
+            <div class="info-text">
+              <strong>Opening Hours</strong>
+              <span>Most locations open 7am – midnight daily</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon">🚗</div>
+            <div class="info-text">
+              <strong>Drive-Thru</strong>
+              <span>Selected locations open 24/7</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="order-form">
+        <h3 class="form-title">Order Form</h3>
+        <p class="form-sub">All fields marked * are required</p>
+
+        <div id="orderFormWrap">
+          <div class="order-summary-box" id="orderSummaryBox">
+            🛒 <strong id="summaryText">Your cart is empty — add items from the menu above.</strong>
+          </div>
+
+          <form id="orderForm" novalidate>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="fname">Full Name *</label>
+                <input class="form-input" type="text" id="fname" name="fname" placeholder="Jane Smith" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="email">Email Address *</label>
+                <input class="form-input" type="email" id="email" name="email" placeholder="jane@email.com" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="phone">Phone Number *</label>
+                <input class="form-input" type="tel" id="phone" name="phone" placeholder="+1 555 000 0000" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="location">Choose Location *</label>
+                <select class="form-select" id="location" name="location" required>
+                  <option value="">Select a location…</option>
+                  <option>City Central</option>
+                  <option>West Mall</option>
+                  <option>Airport Terminal 2</option>
+                  <option>Riverside Drive-Thru</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Dining Option *</label>
+              <div class="radio-group" id="diningGroup">
+                <label class="radio-label" id="lbl-dinein">
+                  <input type="radio" name="dining" value="Dine In" onchange="selectDining(this)"> 🍽️ Dine In
+                </label>
+                <label class="radio-label" id="lbl-takeaway">
+                  <input type="radio" name="dining" value="Take Away" onchange="selectDining(this)"> 🛍️ Take Away
+                </label>
+                <label class="radio-label" id="lbl-drivethru">
+                  <input type="radio" name="dining" value="Drive-Thru" onchange="selectDining(this)"> 🚗 Drive-Thru
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="package">Package / Meal Deal</label>
+              <select class="form-select" id="package" name="package">
+                <option value="">No package — individual items only</option>
+                <optgroup label="Signature Set Meals">
+                  <option>The Blast Classic Meal — $9.99</option>
+                  <option>Firecracker Chicken Meal — $13.99</option>
+                  <option>Ultimate Double Meal — $17.99</option>
+                </optgroup>
+                <optgroup label="Budget Value Meals">
+                  <option>Value Everyday Meal — $6.99</option>
+                  <option>Fish Meal Deal — $7.49</option>
+                  <option>Nuggets Value Box — $7.99</option>
+                </optgroup>
+                <optgroup label="Kids Happy Meals">
+                  <option>Junior Nugget Box — $5.99</option>
+                  <option>Mini Burger Buster — $6.49</option>
+                  <option>Kids Party Pack (x4) — $22.99</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="cc">Card Number *</label>
+              <div class="form-cc-row">
+                <input class="form-input" type="text" id="cc" name="cc" placeholder="1234 5678 9012 3456"
+                  maxlength="19" inputmode="numeric" required oninput="formatCard(this)">
+                <input class="form-input" type="text" name="cc_expiry" placeholder="MM/YY"
+                  maxlength="5" inputmode="numeric" required oninput="formatExpiry(this)">
+                <input class="form-input" type="text" name="cc_cvv" placeholder="CVV"
+                  maxlength="4" inputmode="numeric" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="message">Special Instructions / Message</label>
+              <textarea class="form-textarea" id="message" name="message"
+                placeholder="Any allergies, special requests, or notes for your order…"></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+              🔥 Place Order — Pay Securely
+            </button>
+          </form>
+        </div>
+
+        <div class="form-success" id="formSuccess">
+          <div class="success-icon">✅</div>
+          <h3>Order Confirmed!</h3>
+          <p>
+            Thank you! Your BurgerBlast order has been received.<br>
+            We'll send a confirmation to your email shortly.<br>
+            Estimated prep time: <strong style="color:var(--yellow)">15–20 minutes</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────── FOOTER ──────────── -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="nav-logo" style="font-size:1.3rem">🍔 <span class="b1">Burger</span><span class="b2">Blast</span></div>
+      <p>Serving flame-grilled happiness since 1987. 500+ locations across 38 countries — BurgerBlast is where bold flavour meets great value.</p>
+      <div class="social-row">
+        <a href="#" class="social-btn" aria-label="Facebook">f</a>
+        <a href="#" class="social-btn" aria-label="Instagram">ig</a>
+        <a href="#" class="social-btn" aria-label="X / Twitter">X</a>
+        <a href="#" class="social-btn" aria-label="TikTok">tt</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Menu</h4>
+      <ul>
+        <li><a href="#menu">Burgers</a></li>
+        <li><a href="#menu">Chicken</a></li>
+        <li><a href="#menu">Sides &amp; Snacks</a></li>
+        <li><a href="#menu">Drinks</a></li>
+        <li><a href="#menu">Desserts</a></li>
+        <li><a href="#meals">Meal Deals</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul>
+        <li><a href="#">About Us</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Franchising</a></li>
+        <li><a href="#">Press</a></li>
+        <li><a href="#">Sustainability</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Help</h4>
+      <ul>
+        <li><a href="#locations">Find a Location</a></li>
+        <li><a href="#">Nutrition Info</a></li>
+        <li><a href="#">Allergen Guide</a></li>
+        <li><a href="#contact">Order Online</a></li>
+        <li><a href="#contact">Contact Us</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">© 2026 BurgerBlast Inc. All rights reserved. 🔥 Made with fire.</p>
+    <div class="footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Use</a>
+      <a href="#">Cookie Policy</a>
+      <a href="#">Accessibility</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ──────────── CART SIDEBAR ──────────── -->
+<div id="cart-sidebar" role="dialog" aria-label="Order cart" aria-modal="true">
+  <div class="cart-header">
+    <span class="cart-title">🛒 Your Order</span>
+    <button class="cart-close" onclick="toggleCart()" aria-label="Close cart">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <div class="cart-empty">Your cart is empty.<br>Add items from the menu!</div>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-total">
+      <span class="cart-total-label">Order Total</span>
+      <span class="cart-total-val" id="cartTotal">$0.00</span>
+    </div>
+    <a href="#contact" class="btn-checkout" onclick="toggleCart()">Proceed to Order →</a>
+  </div>
+</div>
+
+<!-- ──────────── JAVASCRIPT ──────────── -->
+<script>
+/* ── DATA ── */
+const menuData = {
+  burgers: [
+    { id:'b1', emoji:'🍔', name:'Classic Beef Burger', desc:'100% pure beef patty, cheddar, pickles, onions, ketchup & mustard', price:5.99, cal:'540 kcal', badge:'HOT', bg:'linear-gradient(135deg,#3D0A0A,#1A1A1A)', img:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70' },
+    { id:'b2', emoji:'🍔', name:'Double Smash Burger', desc:'Two smashed patties, American cheese, caramelised onions, blast sauce', price:8.49, cal:'780 kcal', badge:'NEW', bg:'linear-gradient(135deg,#3D0A0A,#1A1A1A)', img:'https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=400&q=70' },
+    { id:'b3', emoji:'🐟', name:'Crispy Fish Burger', desc:'Golden beer-battered fish fillet, tartare sauce, lettuce, cheese', price:6.49, cal:'490 kcal', badge:'', bg:'linear-gradient(135deg,#0A1A3D,#1A1A1A)', img:'https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=400&q=70' },
+    { id:'b4', emoji:'🥓', name:'BBQ Bacon Burger', desc:'Beef patty, smoked bacon, onion straws, smoky BBQ, jalapeños', price:9.29, cal:'690 kcal', badge:'', bg:'linear-gradient(135deg,#3D1A00,#1A1A1A)', img:'https://images.unsplash.com/photo-1609167830220-7164aa360951?w=400&q=70' },
+    { id:'b5', emoji:'🥑', name:'Veggie Blast Burger', desc:'Plant-based patty, avocado, tomato, rocket, vegan mayo', price:7.99, cal:'420 kcal', badge:'', bg:'linear-gradient(135deg,#0A3D0A,#1A1A1A)', img:'https://images.unsplash.com/photo-1520072959219-c595dc870360?w=400&q=70' },
+    { id:'b6', emoji:'🌋', name:'Volcano Beef Burger', desc:'Double beef, ghost pepper sauce, pepper jack cheese, chillies', price:9.99, cal:'820 kcal', badge:'SPICY', bg:'linear-gradient(135deg,#5A0A00,#1A1A1A)', img:'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&q=70' },
+  ],
+  chicken: [
+    { id:'c1', emoji:'🍗', name:'Crispy Chicken Burger', desc:'Hand-breaded fillet, coleslaw, pickles, blast mayo, brioche bun', price:6.99, cal:'580 kcal', badge:'', bg:'linear-gradient(135deg,#3D2E00,#1A1A1A)', img:'https://images.unsplash.com/photo-1562967914-608f82629710?w=400&q=70' },
+    { id:'c2', emoji:'🌶️', name:'Spicy Firecracker Chicken', desc:'Double-fried thigh, sriracha glaze, pickled slaw, chipotle aioli', price:7.99, cal:'640 kcal', badge:'SPICY', bg:'linear-gradient(135deg,#3D0A0A,#1A1A1A)', img:'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=400&q=70' },
+    { id:'c3', emoji:'🍗', name:'Chicken Nuggets 6pc', desc:'All-white-meat nuggets, golden crumb, 4 dipping sauce choices', price:3.99, cal:'290 kcal', badge:'', bg:'linear-gradient(135deg,#3D2E00,#1A1A1A)', img:'https://images.unsplash.com/photo-1685109191756-e6b37bcb9f3f?w=400&q=70' },
+    { id:'c4', emoji:'🍗', name:'Chicken Nuggets 20pc', desc:'Party pack — 20 golden nuggets, 4 large dipping sauces', price:10.99, cal:'960 kcal', badge:'NEW', bg:'linear-gradient(135deg,#3D2E00,#1A1A1A)', img:'https://images.unsplash.com/photo-1587314168485-3236d6710814?w=400&q=70' },
+    { id:'c5', emoji:'🥗', name:'Grilled Chicken Burger', desc:'Flame-grilled breast, romaine, tomato, honey mustard, wholemeal bun', price:6.49, cal:'390 kcal', badge:'', bg:'linear-gradient(135deg,#3D0A0A,#1A1A1A)', img:'https://images.unsplash.com/photo-1550950158-d0d960dff596?w=400&q=70' },
+  ],
+  sides: [
+    { id:'s1', emoji:'🍟', name:'Classic French Fries (Reg)', desc:'Thin-cut golden fries, sea salt seasoning', price:2.49, cal:'320 kcal', badge:'', bg:'linear-gradient(135deg,#3D2E00,#1A1A1A)', img:'https://images.unsplash.com/photo-1573080496219-bb964d94be69?w=400&q=70' },
+    { id:'s2', emoji:'🍟', name:'Large French Fries', desc:'Supersized seasoned fries', price:3.49, cal:'490 kcal', badge:'', bg:'linear-gradient(135deg,#3D2E00,#1A1A1A)', img:'https://images.unsplash.com/photo-1630384060421-105bc19a8d8d?w=400&q=70' },
+    { id:'s3', emoji:'🧀', name:'Loaded Chilli Cheese Fries', desc:'Large fries, beef chilli, cheddar, jalapeños, sour cream', price:5.99, cal:'680 kcal', badge:'HOT', bg:'linear-gradient(135deg,#3D1A00,#1A1A1A)', img:'https://images.unsplash.com/photo-1576107232684-1279f55a1687?w=400&q=70' },
+    { id:'s4', emoji:'🥧', name:'Apple Pie', desc:'Warm golden pastry, cinnamon-spiced apple filling, baked fresh hourly', price:1.99, cal:'230 kcal', badge:'', bg:'linear-gradient(135deg,#3D2200,#1A1A1A)', img:'https://images.unsplash.com/photo-1535920527002-b35e96722eb9?w=400&q=70' },
+    { id:'s5', emoji:'🥗', name:'Garden Side Salad', desc:'Romaine, cherry tomatoes, cucumber, croutons, choice of dressing', price:2.99, cal:'110 kcal', badge:'', bg:'linear-gradient(135deg,#0A3D0A,#1A1A1A)', img:'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=70' },
+    { id:'s6', emoji:'🧅', name:'Onion Rings', desc:'Thick-cut beer-battered sweet onion rings, served with dip', price:3.29, cal:'350 kcal', badge:'', bg:'linear-gradient(135deg,#3D2E00,#1A1A1A)', img:'https://images.unsplash.com/photo-1639024471283-03518883512d?w=400&q=70' },
+  ],
+  drinks: [
+    { id:'d1', emoji:'🥤', name:'Classic Soft Drink', desc:'Coca-Cola, Sprite, Fanta, Zero Sugar. Free refills in-store.', price:1.99, cal:'', badge:'', bg:'linear-gradient(135deg,#0A1A3D,#1A1A1A)', img:'https://images.unsplash.com/photo-1581636625402-29b2a704ef13?w=400&q=70' },
+    { id:'d2', emoji:'🥛', name:'Thick Milkshake', desc:'Vanilla, Chocolate, Strawberry, Salted Caramel. Whipped cream.', price:4.49, cal:'', badge:'', bg:'linear-gradient(135deg,#3D0A2E,#1A1A1A)', img:'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=400&q=70' },
+    { id:'d3', emoji:'☕', name:'Hot Coffee', desc:'Espresso, Flat White, Cappuccino, Latte — Arabica beans.', price:2.99, cal:'', badge:'', bg:'linear-gradient(135deg,#3D0A0A,#1A1A1A)', img:'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&q=70' },
+    { id:'d4', emoji:'🧊', name:'Iced Coffee Blast', desc:'Cold-brew over ice, milk, Vanilla/Caramel/Mocha syrup.', price:3.99, cal:'', badge:'NEW', bg:'linear-gradient(135deg,#0A1A3D,#1A1A1A)', img:'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&q=70' },
+    { id:'d5', emoji:'🍵', name:'Hot Tea', desc:'English Breakfast, Green, Peppermint, Chamomile.', price:1.99, cal:'', badge:'', bg:'linear-gradient(135deg,#3D0A0A,#1A1A1A)', img:'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=400&q=70' },
+    { id:'d6', emoji:'🍓', name:'Fresh Fruit Smoothie', desc:'Strawberry-Mango, Tropical Blast, Mixed Berry. No added sugar.', price:4.29, cal:'', badge:'', bg:'linear-gradient(135deg,#0A3D0A,#1A1A1A)', img:'https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=400&q=70' },
+  ],
+  desserts: [
+    { id:'ds1', emoji:'🍦', name:'Vanilla Sundae', desc:'Soft-serve vanilla, hot fudge or caramel topping', price:2.99, cal:'340 kcal', badge:'', bg:'linear-gradient(135deg,#3D0A2E,#1A1A1A)', img:'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&q=70' },
+    { id:'ds2', emoji:'🍫', name:'Chocolate Sundae', desc:'Belgian choc soft-serve, fudge drizzle, whipped cream, sprinkles, cherry', price:3.29, cal:'420 kcal', badge:'', bg:'linear-gradient(135deg,#3D0A2E,#1A1A1A)', img:'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=400&q=70' },
+    { id:'ds3', emoji:'🍓', name:'Strawberry Sundae', desc:'Strawberry soft-serve, fresh coulis, real strawberry pieces, whipped cream', price:3.29, cal:'360 kcal', badge:'NEW', bg:'linear-gradient(135deg,#3D0A2E,#1A1A1A)', img:'https://images.unsplash.com/photo-1488900128323-21503983a07e?w=400&q=70' },
+    { id:'ds4', emoji:'🫐', name:'Blueberry Cheesecake Sundae', desc:'Vanilla soft-serve, blueberry compote, graham cracker crumble', price:3.79, cal:'400 kcal', badge:'', bg:'linear-gradient(135deg,#1A0A3D,#1A1A1A)', img:'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&q=70' },
+    { id:'ds5', emoji:'🥧', name:'Apple Pie à la Mode', desc:'Warm cinnamon apple pie + scoop of vanilla ice cream', price:3.99, cal:'480 kcal', badge:'', bg:'linear-gradient(135deg,#3D2200,#1A1A1A)', img:'https://images.unsplash.com/photo-1535920527002-b35e96722eb9?w=400&q=70' },
+    { id:'ds6', emoji:'🍦', name:'Soft Serve Cone', desc:'Classic swirled vanilla soft-serve on crispy wafer cone', price:1.49, cal:'170 kcal', badge:'', bg:'linear-gradient(135deg,#3D0A2E,#1A1A1A)', img:'https://images.unsplash.com/photo-1516684669134-de6f7c473a2a?w=400&q=70' },
+  ]
+};
+
+const signatureMeals = [
+  { id:'sm1', name:'The Blast Classic Meal', includes:'Classic Beef Burger + Med Fries + Reg Drink + Soft Serve', price:'$9.99', savings:'Save $3.49', was:'$13.48' },
+  { id:'sm2', name:'Firecracker Chicken Meal', includes:'Firecracker Burger + Lg Fries + Lg Drink + 6pc Nuggets', price:'$13.99', savings:'Save $5.29', was:'$19.28' },
+  { id:'sm3', name:'Ultimate Double Meal', includes:'Double Smash + Chilli Cheese Fries + Lg Milkshake + Apple Pie', price:'$17.99', savings:'Save $6.77', was:'$24.76' },
+];
+const valueMeals = [
+  { id:'vm1', name:'Value Everyday Meal', includes:'Classic Beef Burger + Regular Fries + Regular Drink', price:'$6.99', savings:'Save $2.49', was:'$9.48' },
+  { id:'vm2', name:'Fish Meal Deal', includes:'Crispy Fish Burger + Regular Fries + Drink or Hot Tea', price:'$7.49', savings:'Save $2.98', was:'$10.47' },
+  { id:'vm3', name:'Nuggets Value Box', includes:'9pc Chicken Nuggets + Regular Fries + Regular Drink', price:'$7.99', savings:'Save $2.98', was:'$10.97' },
+];
+const kidsMeals = [
+  { id:'km1', name:'Junior Nugget Box', includes:'4pc Nuggets + Small Fries + Kids Milk/Juice + Soft Serve', price:'$5.99' },
+  { id:'km2', name:'Mini Burger Buster', includes:'Junior Burger + Small Fries + Choc Milk + Vanilla Soft Serve', price:'$6.49' },
+  { id:'km3', name:'Kids Party Pack (x4)', includes:'4x Junior Burgers + 4x Small Fries + 4x Drinks + 4x Soft Serve', price:'$22.99', party:true },
+];
+
+/* ── CART STATE ── */
+let cart = [];
+
+/* ── RENDER MENU GRIDS ── */
+function badgeClass(b) {
+  if (b === 'HOT' || b === 'NEW') return 'badge-hot';
+  if (b === 'SPICY') return 'badge-spicy';
+  return '';
+}
+
+function renderGrid(items, containerId) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = items.map(item => `
+    <div class="food-card">
+      <div class="card-img" style="background:${item.bg}">
+        <img src="${item.img}" alt="${item.name}" loading="lazy"
+          onerror="this.style.display='none';this.parentElement.style.display='flex';this.parentElement.style.alignItems='center';this.parentElement.style.justifyContent='center';this.parentElement.innerHTML='<span style=font-size:4rem>${item.emoji}</span>'">
+        ${item.badge ? `<span class="card-badge ${badgeClass(item.badge)}">${item.badge}</span>` : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-name">${item.name}</div>
+        <div class="card-desc">${item.desc}</div>
+        ${item.cal ? `<div class="card-cal">${item.cal}</div>` : ''}
+        <div class="card-footer">
+          <span class="card-price">$${item.price.toFixed(2)}</span>
+          <button class="add-btn" id="btn-${item.id}"
+            onclick="addToCart(${JSON.stringify(item).replace(/"/g,'&quot;')})"
+            aria-label="Add ${item.name} to cart">+</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderMealCards() {
+  // Signature
+  document.getElementById('grid-signature').innerHTML = signatureMeals.map(m => `
+    <div class="meal-card">
+      <div class="meal-badge sig">⭐ Signature Set Meal</div>
+      <div class="meal-name">${m.name}</div>
+      <div class="meal-includes">${m.includes}</div>
+      <div class="meal-footer">
+        <div>
+          <div class="meal-price-sig">${m.price}</div>
+          <div class="meal-savings">${m.was} &nbsp;<span class="save-tag">${m.savings}</span></div>
+        </div>
+        <button class="meal-order-btn" id="mbtn-${m.id}" onclick="addMealToCart('${m.id}','${m.name}',${parseFloat(m.price.replace('$',''))},this)">Order →</button>
+      </div>
+    </div>`).join('');
+
+  // Value
+  document.getElementById('grid-value').innerHTML = valueMeals.map(m => `
+    <div class="meal-card value-card">
+      <div class="meal-badge val">💛 Budget Value Meal</div>
+      <div class="meal-name">${m.name}</div>
+      <div class="meal-includes">${m.includes}</div>
+      <div class="meal-footer">
+        <div>
+          <div class="meal-price-val">${m.price}</div>
+          <div class="meal-savings">${m.was} &nbsp;<span class="save-tag">${m.savings}</span></div>
+        </div>
+        <button class="meal-order-btn" id="mbtn-${m.id}" onclick="addMealToCart('${m.id}','${m.name}',${parseFloat(m.price.replace('$',''))},this)">Order →</button>
+      </div>
+    </div>`).join('');
+
+  // Kids
+  document.getElementById('grid-kids').innerHTML = kidsMeals.map(m => `
+    <div class="meal-card kids-card">
+      <div class="meal-badge kids">🎉 ${m.party ? 'Kids Party Pack' : 'Kids Happy Meal'}</div>
+      <div class="meal-name">${m.name}</div>
+      <div class="meal-includes">${m.includes}</div>
+      <div class="meal-toy-tag">${m.party ? '🎁 4x Surprise Toys Included! Collect all 6!' : '🎁 + 1 Free Surprise Toy! Collect all 6!'}</div>
+      <div class="meal-footer">
+        <div class="meal-price-kids">${m.price}</div>
+        <button class="meal-order-btn" id="mbtn-${m.id}" onclick="addMealToCart('${m.id}','${m.name}',${parseFloat(m.price.replace('$',''))},this)">Order →</button>
+      </div>
+    </div>`).join('');
+}
+
+/* ── CART FUNCTIONS ── */
+function addToCart(item) {
+  const btn = document.getElementById('btn-' + item.id);
+  const existing = cart.find(c => c.id === item.id);
+  if (existing) { existing.qty++; }
+  else { cart.push({ id: item.id, name: item.name, price: item.price, emoji: item.emoji, qty: 1 }); }
+  btn.textContent = '✓';
+  btn.classList.add('added');
+  setTimeout(() => { btn.textContent = '+'; btn.classList.remove('added'); }, 1200);
+  updateCartUI();
+}
+
+function addMealToCart(id, name, price, btn) {
+  const existing = cart.find(c => c.id === id);
+  if (existing) { existing.qty++; }
+  else { cart.push({ id, name, price, emoji: '🍱', qty: 1 }); }
+  btn.textContent = '✓ Added!';
+  btn.classList.add('added');
+  setTimeout(() => { btn.textContent = 'Order →'; btn.classList.remove('added'); }, 1200);
+  updateCartUI();
+}
+
+function changeQty(id, delta) {
+  const idx = cart.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  cart[idx].qty += delta;
+  if (cart[idx].qty <= 0) cart.splice(idx, 1);
+  updateCartUI();
+}
+
+function updateCartUI() {
+  const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
+  const count = cart.reduce((s, c) => s + c.qty, 0);
+  document.getElementById('cart-count').textContent = count;
+  document.getElementById('cartTotal').textContent = '$' + total.toFixed(2);
+
+  const itemsEl = document.getElementById('cartItems');
+  if (cart.length === 0) {
+    itemsEl.innerHTML = '<div class="cart-empty">Your cart is empty.<br>Add items from the menu!</div>';
+  } else {
+    itemsEl.innerHTML = cart.map(c => `
+      <div class="cart-item">
+        <div class="ci-emoji">${c.emoji}</div>
+        <div class="ci-info">
+          <div class="ci-name">${c.name}</div>
+          <div class="ci-price">$${(c.price * c.qty).toFixed(2)}</div>
+        </div>
+        <div class="ci-qty">
+          <button class="qty-btn" onclick="changeQty('${c.id}',-1)" aria-label="Remove one">−</button>
+          <span class="qty-val">${c.qty}</span>
+          <button class="qty-btn" onclick="changeQty('${c.id}',1)" aria-label="Add one">+</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // Update order summary in form
+  const summaryEl = document.getElementById('summaryText');
+  if (cart.length === 0) {
+    summaryEl.innerHTML = 'Your cart is empty — add items from the menu above.';
+  } else {
+    summaryEl.innerHTML = cart.map(c => `${c.qty}× ${c.name} ($${(c.price*c.qty).toFixed(2)})`).join(' &nbsp;+&nbsp; ')
+      + ` &nbsp;— Total: <strong>$${total.toFixed(2)}</strong>`;
+  }
+}
+
+function toggleCart() {
+  document.getElementById('cart-sidebar').classList.toggle('open');
+}
+
+/* ── TABS ── */
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ── MOBILE NAV ── */
+function toggleMobileMenu() {
+  document.getElementById('mobileMenu').classList.toggle('open');
+}
+function closeMobileMenu() {
+  document.getElementById('mobileMenu').classList.remove('open');
+}
+
+/* ── FORM HELPERS ── */
+function formatCard(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+function formatExpiry(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,4);
+  if (v.length > 2) v = v.substring(0,2) + '/' + v.substring(2);
+  input.value = v;
+}
+function selectDining(radio) {
+  document.querySelectorAll('.radio-label').forEach(l => l.classList.remove('selected'));
+  radio.parentElement.classList.add('selected');
+}
+
+/* ── FORM SUBMIT ── */
+document.getElementById('orderForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  const form = e.target;
+
+  // Basic validation
+  const req = ['fname','email','phone','location','cc'];
+  let valid = true;
+  req.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || !el.value.trim()) {
+      el && (el.style.borderColor = 'var(--red)');
+      valid = false;
+    } else {
+      el.style.borderColor = '';
+    }
+  });
+  if (!form.querySelector('input[name=dining]:checked')) {
+    document.getElementById('diningGroup').style.outline = '2px solid var(--red)';
+    valid = false;
+  } else {
+    document.getElementById('diningGroup').style.outline = '';
+  }
+  if (!valid) return;
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Placing order…';
+
+  const payload = {
+    name: form.fname.value,
+    email: form.email.value,
+    phone: form.phone.value,
+    location: form.location.value,
+    dining: form.querySelector('input[name=dining]:checked')?.value || '',
+    package: form.package.value,
+    message: form.message.value,
+    cart: cart.map(c => `${c.qty}x ${c.name} ($${(c.price*c.qty).toFixed(2)})`).join('; '),
+    total: '$' + cart.reduce((s,c) => s+c.price*c.qty, 0).toFixed(2),
+  };
+
+  try {
+    await fetch('https://formsubmit.co/ajax/verwertung777@gmail.com', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (_) {}
+
+  document.getElementById('orderFormWrap').style.display = 'none';
+  document.getElementById('formSuccess').style.display = 'block';
+  cart = [];
+  updateCartUI();
+});
+
+/* ── INIT ── */
+renderGrid(menuData.burgers, 'grid-burgers');
+renderGrid(menuData.chicken, 'grid-chicken');
+renderGrid(menuData.sides, 'grid-sides');
+renderGrid(menuData.drinks, 'grid-drinks');
+renderGrid(menuData.desserts, 'grid-desserts');
+renderMealCards();
+</script>
+</body>
+</html>
